@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-bin Guadalupano | Gestión Ambiental y Eco-Delivery</title>
+    <!-- Tailwind CSS (compilado localmente, no depende de CDN) -->
+    <link rel="stylesheet" href="tailwind.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Canvas Confetti for rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        html { -webkit-text-size-adjust: 100%; }
+        body { overflow-x: hidden; }
+        button { cursor: pointer; }
+        img, canvas, svg { max-width: 100%; }
+        .nav-item.active {
+            background-color: #dcfce7;
+            color: #15803d;
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-2">
+                <!-- Logo & School Brand -->
+                <div class="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0 shrink" onclick="switchTab('tab-inicio')">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                        <i class="fa-solid fa-recycle text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-base sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-1.5 whitespace-nowrap">
+                            ECO-BIN <span class="hidden min-[400px]:inline text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-800 font-semibold">Guadalupano</span>
+                        </span>
+                        <p class="hidden sm:block text-[10px] text-slate-500 font-medium -mt-1">Sostenibilidad & Comunidad Escolar</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden lg:flex items-center gap-1">
+                    <button onclick="switchTab('tab-inicio')" id="nav-tab-inicio" class="nav-item active px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-house"></i> Inicio
+                    </button>
+                    <button onclick="switchTab('tab-datos')" id="nav-tab-datos" class="nav-item px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie"></i> Datos
+                    </button>
+                    <button onclick="switchTab('tab-depositos')" id="nav-tab-depositos" class="nav-item px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-dumpster-fire"></i> Depósitos
+                    </button>
+                    <button onclick="switchTab('tab-consejos')" id="nav-tab-consejos" class="nav-item px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb"></i> Consejos
+                    </button>
+                    <button onclick="switchTab('tab-contactos')" id="nav-tab-contactos" class="nav-item px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-address-book"></i> Contactos
+                    </button>
+                    <button onclick="switchTab('tab-apoyo')" id="nav-tab-apoyo" class="nav-item px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-brand-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        <i class="fa-solid fa-hand-holding-heart"></i> Apoyo
+                    </button>
+                </nav>
+
+                <!-- Eco-Delivery CTA & Points Pill -->
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <button onclick="switchTab('tab-delivery')" id="nav-tab-delivery" class="relative group bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold px-3 sm:px-4 py-2 rounded-xl text-sm shadow-md shadow-orange-500/20 transition flex items-center gap-2">
+                        <i class="fa-solid fa-burger text-lg"></i>
+                        <span class="hidden sm:inline">Eco-Delivery</span>
+                        <span id="badge-cart-count" class="hidden bg-white text-orange-600 text-xs font-black px-1.5 py-0.5 rounded-full">0</span>
+                    </button>
+
+                    <!-- Eco-Points Widget -->
+                    <div class="bg-brand-50 border border-brand-200 text-brand-800 px-2 sm:px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 whitespace-nowrap" title="Tus Eco-Puntos acumulados por reciclar">
+                        <i class="fa-solid fa-seedling text-brand-600"></i>
+                        <span id="user-points-display">120</span> Pts
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="lg:hidden text-slate-600 hover:text-slate-900 p-2 text-xl focus:outline-none">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
+            <button onclick="switchTab('tab-inicio')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-house w-5 text-brand-600"></i> Inicio</button>
+            <button onclick="switchTab('tab-datos')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-chart-pie w-5 text-brand-600"></i> Registros y Estadísticas</button>
+            <button onclick="switchTab('tab-depositos')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-dumpster-fire w-5 text-brand-600"></i> Puntos de Depósito</button>
+            <button onclick="switchTab('tab-consejos')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-lightbulb w-5 text-brand-600"></i> Consejos y Retos</button>
+            <button onclick="switchTab('tab-contactos')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-address-book w-5 text-brand-600"></i> Contactos</button>
+            <button onclick="switchTab('tab-apoyo')" class="w-full text-left px-3 py-2 rounded-lg text-slate-700 font-semibold hover:bg-slate-100 flex items-center gap-3"><i class="fa-solid fa-hand-holding-heart w-5 text-brand-600"></i> Donaciones y Proyectos</button>
+            <button onclick="switchTab('tab-delivery')" class="w-full text-left px-3 py-2 rounded-lg text-amber-700 bg-amber-50 font-bold hover:bg-amber-100 flex items-center gap-3"><i class="fa-solid fa-burger w-5 text-amber-600"></i> Tienda Eco-Delivery</button>
+        </div>
+    </header>
+
+    <!-- MAIN SPA CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 min-w-0">
+
+        <!-- ========================================== -->
+        <!-- 1. SECCIÓN: INICIO / PRESENTACIÓN -->
+        <!-- ========================================== -->
+        <section id="tab-inicio" class="tab-content active space-y-10">
+            <!-- Hero Banner -->
+            <div class="relative bg-gradient-to-br from-brand-900 via-brand-800 to-emerald-900 text-white rounded-3xl p-6 sm:p-12 overflow-hidden shadow-xl">
+                <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-12 -translate-y-12">
+                    <i class="fa-solid fa-leaf text-[320px]"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/30 text-brand-200 border border-brand-400/30 text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-school"></i> Colegio Guadalupano Sostenible
+                    </span>
+                    <h1 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+                        Transformamos Residuos en Futuro y Conciencia
+                    </h1>
+                    <p class="text-slate-200 text-base sm:text-lg leading-relaxed">
+                        Bienvenido a <strong class="text-white">Eco-bin</strong>, la plataforma interactiva para clasificar residuos, ganar Eco-Puntos, financiar nuevas canecas escolares y pedir tu lonchera sin filas.
+                    </p>
+                    <div class="pt-4 flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                        <button onclick="switchTab('tab-datos')" class="bg-brand-500 hover:bg-brand-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i> Registrar Residuo
+                        </button>
+                        <button onclick="switchTab('tab-delivery')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-utensils"></i> Pedir en Tienda Escolar
+                        </button>
+                        <button onclick="switchTab('tab-depositos')" class="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-semibold px-5 py-3 rounded-xl transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-map-marker-alt"></i> Ver Puntos
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Impact Metrics Overview -->
+            <div>
+                <div class="text-center max-w-xl mx-auto mb-6">
+                    <h2 class="text-2xl font-extrabold text-slate-900">Nuestro Impacto Guadalupano</h2>
+                    <p class="text-slate-500 text-sm">Resumen en tiempo real de la gestión ambiental dentro del colegio</p>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start sm:flex-row sm:items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-weight-hanging"></i>
+                        </div>
+                        <div>
+                            <span id="metric-total-kg" class="text-2xl sm:text-3xl font-black text-slate-800">125.5</span> <span class="text-xs font-semibold text-slate-500">kg</span>
+                            <p class="text-xs text-slate-500 font-medium">Residuos Recolectados</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start sm:flex-row sm:items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div>
+                            <span id="metric-total-logs" class="text-2xl sm:text-3xl font-black text-slate-800">48</span>
+                            <p class="text-xs text-slate-500 font-medium">Registros Realizados</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start sm:flex-row sm:items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-dumpster"></i>
+                        </div>
+                        <div>
+                            <span class="text-2xl sm:text-3xl font-black text-slate-800">12</span>
+                            <p class="text-xs text-slate-500 font-medium">Puntos de Depósito</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-start sm:flex-row sm:items-center gap-3 sm:gap-4">
+                        <div class="w-12 h-12 shrink-0 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl font-bold">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <span class="text-2xl sm:text-3xl font-black text-slate-800">85+</span>
+                            <p class="text-xs text-slate-500 font-medium">Estudiantes Activos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Eco-Bin Concept Showcase -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="w-10 h-10 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">1. Registra y Cuantifica</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Anota el plástico, papel o vidrio que depositas. Convierte tus acciones ecológicas en métricas para el colegio y gana Eco-Puntos.
+                    </p>
+                </div>
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-shop text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">2. Eco-Delivery Sustentable</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Pre-ordena tu refrigerio antes del descanso, usa tus puntos acumulados para obtener descuentos y ayuda a financiar canecas ecológicas.
+                    </p>
+                </div>
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-hands-holding-circle text-lg"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">3. Impacto Colectivo</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Financiamos nuevos puntos ecológicos y jornadas comunitarias. ¡Cero residuos durante los descansos escolares!
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 2. SECCIÓN: DATOS Y REGISTROS -->
+        <!-- ========================================== -->
+        <section id="tab-datos" class="tab-content space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">📊 Registros y Estadísticas de Residuos</h2>
+                    <p class="text-slate-500 text-sm">Registra lo recolectado para actualizar los indicadores Guadalupanos.</p>
+                </div>
+            </div>
+
+            <!-- Grid Form & Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Registration Form -->
+                <div class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-brand-600"></i> Nuevo Registro de Residuo
+                    </h3>
+                    <form id="form-waste-log" onsubmit="handleWasteSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo de Residuo</label>
+                            <select id="waste-type" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none">
+                                <option value="Plástico">🥤 Plástico</option>
+                                <option value="Papel/Cartón">📄 Papel / Cartón</option>
+                                <option value="Vidrio">🍾 Vidrio</option>
+                                <option value="Orgánico">🍌 Orgánico</option>
+                                <option value="Electrónico">🔋 Electrónico / RAEE</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Cantidad (kg)</label>
+                                <input type="number" step="0.1" min="0.1" id="waste-amount" placeholder="Ej: 2.5" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Fecha</label>
+                                <input type="date" id="waste-date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Lugar de Depósito</label>
+                            <select id="waste-location" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-brand-500 focus:bg-white outline-none">
+                                <option value="Patio Principal - Punto A">📍 Patio Principal - Punto A</option>
+                                <option value="Cafetería - Punto B">📍 Cafetería - Punto B</option>
+                                <option value="Laboratorios - Punto C">📍 Laboratorios - Punto C</option>
+                                <option value="Canchas Deportivas">📍 Canchas Deportivas</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-save"></i> Guardar Registro (+15 Eco-Puntos)
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Live Charts -->
+                <div class="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-1">Distribución Por Categoría</h3>
+                        <p class="text-xs text-slate-500 mb-4">Porcentaje global acumulado de residuos registrados</p>
+                    </div>
+                    <div class="h-64 relative flex items-center justify-center">
+                        <canvas id="chart-waste-pie"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Table with Filters -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <h3 class="font-bold text-slate-800 text-base">Historial de Registros</h3>
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <select id="filter-type" onchange="renderWasteLogs()" class="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold">
+                            <option value="ALL">Todos los tipos</option>
+                            <option value="Plástico">Plástico</option>
+                            <option value="Papel/Cartón">Papel/Cartón</option>
+                            <option value="Vidrio">Vidrio</option>
+                            <option value="Orgánico">Orgánico</option>
+                            <option value="Electrónico">Electrónico</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[560px] text-left text-sm">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold">
+                            <tr>
+                                <th class="px-5 py-3">Tipo</th>
+                                <th class="px-5 py-3">Cantidad</th>
+                                <th class="px-5 py-3">Lugar</th>
+                                <th class="px-5 py-3">Fecha</th>
+                                <th class="px-5 py-3 text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="waste-logs-tbody" class="divide-y divide-slate-100">
+                            <!-- JS injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 3. SECCIÓN: DEPÓSITOS Y UBICACIONES -->
+        <!-- ========================================== -->
+        <section id="tab-depositos" class="tab-content space-y-8">
+            <div class="text-center max-w-xl mx-auto space-y-2">
+                <h2 class="text-2xl font-black text-slate-900">🗑️ Puntos de Depósito y Reciclaje</h2>
+                <p class="text-slate-500 text-sm">Encuentra dónde llevar cada tipo de residuo dentro de nuestra institución.</p>
+            </div>
+
+            <!-- Waste Identifier Tool -->
+            <div class="bg-gradient-to-r from-brand-800 to-emerald-800 text-white rounded-2xl p-6 shadow-md">
+                <h3 class="font-bold text-lg mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-magnifying-glass-location"></i> ¿Dónde deposito este residuo?
+                </h3>
+                <p class="text-xs text-brand-100 mb-4">Selecciona un material para filtrar de inmediato los puntos habilitados:</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterDeposits('ALL')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition active">Todos</button>
+                    <button onclick="filterDeposits('Plástico')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition">🥤 Plástico</button>
+                    <button onclick="filterDeposits('Papel')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition">📄 Papel / Cartón</button>
+                    <button onclick="filterDeposits('Vidrio')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition">🍾 Vidrio</button>
+                    <button onclick="filterDeposits('Electrónico')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition">🔋 Electrónicos</button>
+                    <button onclick="filterDeposits('Orgánico')" class="deposit-filter-btn bg-white/20 hover:bg-white/30 text-white font-semibold text-xs px-4 py-2 rounded-xl transition">🍌 Orgánico</button>
+                </div>
+            </div>
+
+            <!-- Deposit Locations Grid -->
+            <div id="deposits-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- JS Populated -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 4. SECCIÓN: CONSEJOS Y EDUCACIÓN -->
+        <!-- ========================================== -->
+        <section id="tab-consejos" class="tab-content space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">💡 Consejos y Retos Ecológicos</h2>
+                    <p class="text-slate-500 text-sm">Educación ambiental para el día a día en el colegio y la casa.</p>
+                </div>
+            </div>
+
+            <!-- Random Tip Widget -->
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+                <div class="space-y-2 text-center md:text-left">
+                    <span class="bg-amber-200 text-amber-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">Consejo destacado</span>
+                    <h3 id="random-tip-title" class="font-extrabold text-slate-800 text-lg">Cero Botellas Desechables</h3>
+                    <p id="random-tip-desc" class="text-slate-600 text-sm">Trae tu termo reutilizable a la cafetería Guadalupana para evitar comprar envases plásticos de un solo uso.</p>
+                </div>
+                <button onclick="generateRandomTip()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-3 rounded-xl transition whitespace-nowrap shadow flex items-center gap-2">
+                    <i class="fa-solid fa-shuffle"></i> Mostrar otro consejo
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Interactive Quiz / Assistant -->
+                <div class="lg:col-span-6 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-circle-question text-brand-600"></i> ¿Qué hago con este residuo?
+                    </h3>
+                    <p class="text-xs text-slate-500">Selecciona un elemento de consumo común para ver las instrucciones exactas de manejo:</p>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="showWasteAdvice('battery')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition font-semibold text-xs flex items-center gap-2">
+                            🔋 Pilas / Baterías
+                        </button>
+                        <button onclick="showWasteAdvice('juicebox')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition font-semibold text-xs flex items-center gap-2">
+                            🧃 Caja Tetra Pak
+                        </button>
+                        <button onclick="showWasteAdvice('apple')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition font-semibold text-xs flex items-center gap-2">
+                            🍎 Restos de Fruta
+                        </button>
+                        <button onclick="showWasteAdvice('paper')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition font-semibold text-xs flex items-center gap-2">
+                            📄 Hojas Usadas
+                        </button>
+                    </div>
+
+                    <div id="advice-output" class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs leading-relaxed text-slate-700 min-h-[80px] flex items-center">
+                        👈 Haz clic en un residuo para consultar la instrucción correcta.
+                    </div>
+                </div>
+
+                <!-- Daily Eco Challenges -->
+                <div class="lg:col-span-6 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-trophy text-amber-500"></i> Retos Guadalupanos del Día
+                    </h3>
+                    <div class="space-y-3" id="daily-challenges-container">
+                        <!-- JS Dynamic Challenges -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 5. SECCIÓN: CONTACTOS -->
+        <!-- ========================================== -->
+        <section id="tab-contactos" class="tab-content space-y-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">📞 Contactos y Aliados Ambientales</h2>
+                    <p class="text-slate-500 text-sm">Directorio de entidades, recolectores y gestores de reciclaje.</p>
+                </div>
+                <input type="text" id="search-contacts" onkeyup="filterContacts()" placeholder="Buscar por nombre o servicio..." class="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm w-full md:w-64 outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+
+            <div id="contacts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- JS populated -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 6. SECCIÓN: APOYO Y DONACIONES -->
+        <!-- ========================================== -->
+        <section id="tab-apoyo" class="tab-content space-y-8">
+            <div class="text-center max-w-xl mx-auto space-y-2">
+                <h2 class="text-2xl font-black text-slate-900">🤝 Proyectos y Financiamiento</h2>
+                <p class="text-slate-500 text-sm">Apoya nuestras iniciativas con donaciones monetarias, insumos o voluntariado.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Proyecto Canecas -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md">Meta Institucional</span>
+                        <h3 class="text-xl font-bold text-slate-800 mt-2">Nuevas Canecas Ecológicas Patios</h3>
+                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                            Buscamos adquirir 5 estaciones clasificadoras de 3 compartimentos para colocarlas en la zona deportiva.
+                        </p>
+                        <!-- Progress Bar -->
+                        <div class="mt-4 space-y-1">
+                            <div class="flex justify-between text-xs font-bold">
+                                <span class="text-slate-500">Recaudado: $350.000</span>
+                                <span class="text-brand-600">70% de $500.000</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                <div class="bg-brand-500 h-full rounded-full" style="width: 70%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="openSupportModal('Financiamiento Canecas')" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                        Apoyar este Proyecto
+                    </button>
+                </div>
+
+                <!-- Jornada de Limpieza -->
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4">
+                    <div>
+                        <span class="bg-blue-100 text-blue-800 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md">Voluntariado</span>
+                        <h3 class="text-xl font-bold text-slate-800 mt-2">Jornada de Huertas y Limpieza</h3>
+                        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                            Organizamos brigadas los sábados. Aceptamos donaciones en especie (guantes, palas, tierra, semillas y compost).
+                        </p>
+                        <div class="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-500">
+                            <i class="fa-solid fa-calendar"></i> Próxima Fecha: Sábado 15 de Noviembre
+                        </div>
+                    </div>
+                    <button onclick="openSupportModal('Jornada Huertas')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                        Unirse como Voluntario / Insumos
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- 7. SECCIÓN: ECO-DELIVERY TIENDA ESCOLAR -->
+        <!-- ========================================== -->
+        <section id="tab-delivery" class="tab-content space-y-8">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white rounded-2xl p-6 sm:p-8 shadow-md flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="space-y-2 max-w-xl text-center md:text-left">
+                    <span class="bg-white/20 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full">Sistema Eficiente & Sustentable</span>
+                    <h2 class="text-2xl sm:text-3xl font-black">🍔 Eco-Delivery Guadalupano</h2>
+                    <p class="text-xs sm:text-sm text-amber-100">
+                        Pre-ordena tu refrigerio antes del descanso, ahorra tiempo de filas y canjea tus Eco-Puntos por descuentos. <strong>Cada compra financia infraestructura ecológica escolar.</strong>
+                    </p>
+                </div>
+
+                <!-- Mode Toggle (Estudiante vs Tienda) -->
+                <div class="bg-amber-900/40 p-1.5 rounded-2xl flex items-center gap-1 border border-amber-300/30 w-full md:w-auto">
+                    <button id="btn-mode-student" onclick="setDeliveryMode('student')" class="flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-white text-amber-900 shadow">
+                        👨‍🎓 Vista Estudiante
+                    </button>
+                    <button id="btn-mode-store" onclick="setDeliveryMode('store')" class="flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white hover:bg-white/10">
+                        🧑‍🍳 Control Tienda
+                    </button>
+                </div>
+            </div>
+
+            <!-- VISTA ESTUDIANTE -->
+            <div id="delivery-student-view" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Menu Items -->
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <h3 class="font-extrabold text-slate-800 text-lg">Menú de la Cafetería</h3>
+                        <span class="text-xs text-slate-500">Pedidos abiertos para el 1er y 2do descanso</span>
+                    </div>
+
+                    <div id="store-menu-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Menu Items injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Cart & Checkout -->
+                <div class="lg:col-span-4 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm h-fit space-y-4">
+                    <h3 class="font-bold text-slate-800 text-lg border-b border-slate-100 pb-3 flex items-center justify-between">
+                        <span><i class="fa-solid fa-cart-shopping text-amber-500"></i> Tu Pedido</span>
+                        <button onclick="clearCart()" class="text-xs text-red-500 font-semibold hover:underline">Vaciar</button>
+                    </h3>
+
+                    <div id="cart-items-container" class="space-y-3 min-h-[100px]">
+                        <p class="text-xs text-slate-400 text-center py-6">Tu carrito está vacío.</p>
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-3 space-y-2 text-xs">
+                        <div class="flex justify-between font-medium text-slate-600">
+                            <span>Subtotal:</span>
+                            <span id="cart-subtotal">$0</span>
+                        </div>
+                        <div class="flex justify-between font-medium text-emerald-600">
+                            <span>Descuento Eco-Puntos:</span>
+                            <span id="cart-discount">-$0</span>
+                        </div>
+                        <div class="flex justify-between font-black text-sm text-slate-900 border-t border-slate-100 pt-2">
+                            <span>Total:</span>
+                            <span id="cart-total">$0</span>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Details Form -->
+                    <div class="space-y-3 pt-2">
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Nombre y Grado</label>
+                            <input type="text" id="order-student-name" placeholder="Ej: Camilo Torres - 10°A" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold uppercase text-slate-600 mb-1">Descanso de Retiro</label>
+                            <select id="order-break-slot" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-amber-500 font-medium">
+                                <option value="1er Descanso (9:30 AM)">1er Descanso (9:30 AM)</option>
+                                <option value="2do Descanso (11:30 AM)">2do Descanso (11:30 AM)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Toggle Eco Points Use -->
+                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+                            <label for="use-points-checkbox" class="font-bold flex items-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-coins text-emerald-600"></i> Usar 50 Eco-Pts (-$1.000)
+                            </label>
+                            <input type="checkbox" id="use-points-checkbox" onchange="updateCartTotals()" class="rounded text-emerald-600 focus:ring-emerald-500">
+                        </div>
+
+                        <button onclick="submitOrder()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> Confirmar y Enviar Pedido
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA TIENDA ESCOLAR (PANEL DE CONTROL) -->
+            <div id="delivery-store-view" class="hidden space-y-6">
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Panel de Control - Encargados de Tienda</h3>
+                        <p class="text-xs text-slate-500">Gestiona los pedidos entrantes para optimizar la preparación antes de la sirena.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                            🟢 Sistema de Recepción Activo
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Orders List -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-50 font-bold text-xs uppercase text-slate-500">
+                        Pedidos Solicitados
+                    </div>
+                    <div id="store-orders-list" class="divide-y divide-slate-100">
+                        <!-- JS Dynamic Orders -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-2">
+            <p class="font-bold text-slate-700">Eco-bin Guadalupano &copy; 2026 - Proyecto Institucional de Gestión Sostenible</p>
+            <p>Diseñado para promover la conciencia ambiental, el reciclaje activo y la eficiencia en nuestra comunidad educativa.</p>
+        </div>
+    </footer>
+
+    <!-- GENERIC MODAL FOR DONATIONS/SUPPORT -->
+    <div id="support-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-full overflow-y-auto p-5 sm:p-6 space-y-4 shadow-xl">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h3 id="modal-project-title" class="font-bold text-slate-800 text-lg">Apoyar Proyecto</h3>
+                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <p class="text-xs text-slate-600">Completa tus datos para coordinar tu contribución (monetaria o en insumos):</p>
+            <form onsubmit="handleSupportSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nombre Completo</label>
+                    <input type="text" required placeholder="Tu nombre" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo de Apoyo</label>
+                    <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="monetary">Aporte Económico</option>
+                        <option value="material">Insumos / Material Reciclable</option>
+                        <option value="volunteering">Voluntariado en Actividad</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Contacto (Teléfono/Correo)</label>
+                    <input type="text" required placeholder="Ej: 300 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                    Enviar Compromiso de Apoyo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // GLOBAL STATE & STORAGE KEYS
+        const STORAGE_KEY_WASTE = 'ecobin_waste_logs_v1';
+        const STORAGE_KEY_POINTS = 'ecobin_user_points_v1';
+        const STORAGE_KEY_ORDERS = 'ecobin_store_orders_v1';
+
+        // Initial Seed Data if Empty
+        const initialWasteLogs = [
+            { id: 1, type: 'Plástico', amount: 40, location: 'Cafetería - Punto B', date: '2026-10-20' },
+            { id: 2, type: 'Papel/Cartón', amount: 35, location: 'Laboratorios - Punto C', date: '2026-10-21' },
+            { id: 3, type: 'Orgánico', amount: 30, location: 'Cafetería - Punto B', date: '2026-10-21' },
+            { id: 4, type: 'Vidrio', amount: 20.5, location: 'Patio Principal - Punto A', date: '2026-10-22' },
+        ];
+
+        const depositLocations = [
+            {
+                name: 'Punto de Reciclaje A (Patio Principal)',
+                location: 'Frente a las Canchas de Baloncesto',
+                types: ['Plástico', 'Papel', 'Vidrio'],
+                hours: '6:30 AM - 3:00 PM',
+                badgeBg: 'bg-emerald-100 text-emerald-800'
+            },
+            {
+                name: 'Punto de Reciclaje B (Cafetería)',
+                location: 'A un costado de la Tienda Escolar',
+                types: ['Plástico', 'Orgánico'],
+                hours: '7:00 AM - 2:00 PM',
+                badgeBg: 'bg-amber-100 text-amber-800'
+            },
+            {
+                name: 'Punto Especial C (Laboratorios)',
+                location: 'Bloque Secundario - Piso 1',
+                types: ['Electrónico', 'Vidrio', 'Papel'],
+                hours: '8:00 AM - 1:00 PM',
+                badgeBg: 'bg-purple-100 text-purple-800'
+            }
+        ];
+
+        const tipsList = [
+            { title: "Cero Botellas Desechables", desc: "Trae tu termo reutilizable a la cafetería Guadalupana para evitar comprar envases plásticos de un solo uso." },
+            { title: "Limpia tus Envases", desc: "Antes de depositar tu botella de jugo o yogurt, enjuágala levemente para no contaminar el resto del papel o plástico recolectado." },
+            { title: "Aprovecha el Orgánico", desc: "Las cáscaras de banano y manzana de la lonchera van directo al contenedor verde para el compost de la huerta escolar." },
+            { title: "Desconecta Equipos", desc: "Al salir de la sala de sistemas o del salón, verifica que los televisores y ventiladores queden apagados." }
+        ];
+
+        const contactsList = [
+            { name: "Centro de Reciclaje Guadalupano", category: "Recolección Interna", phone: "300 890 1234", email: "reciclaje@guadalupano.edu.co", loc: "Sede Central", accepts: "Plástico, Cartón, Vidrio" },
+            { name: "Asociación EcoResiduos Local", category: "Gestor Externo", phone: "604 444 5566", email: "contacto@ecoresiduos.org", loc: "Sector Escolar", accepts: "Electrónicos, Pilas, Aceite" },
+            { name: "Comité Ambiental Escolar (PRAE)", category: "Docentes & Estudiantes", phone: "312 555 7890", email: "prae@guadalupano.edu.co", loc: "Aula 204", accepts: "Asesorías y Proyectos" }
+        ];
+
+        const storeMenu = [
+            { id: 101, name: "Sándwich de Jamón y Queso", price: 4500, category: "Snacks", icon: "🥪" },
+            { id: 102, name: "Jugo Natural en Vaso Reutilizable", price: 2500, category: "Bebidas", icon: "🥤" },
+            { id: 103, name: "Ensalada de Frutas Frescas", price: 3500, category: "Saludable", icon: "🍇" },
+            { id: 104, name: "Empanada de Carne Horneada", price: 2000, category: "Snacks", icon: "🥟" }
+        ];
+
+        // LOCAL STORAGE HELPERS
+        function getWasteLogs() {
+            const data = localStorage.getItem(STORAGE_KEY_WASTE);
+            return data ? JSON.parse(data) : initialWasteLogs;
+        }
+
+        function saveWasteLogs(logs) {
+            localStorage.setItem(STORAGE_KEY_WASTE, JSON.stringify(logs));
+        }
+
+        function getUserPoints() {
+            const pts = localStorage.getItem(STORAGE_KEY_POINTS);
+            return pts ? parseInt(pts) : 120;
+        }
+
+        function saveUserPoints(pts) {
+            localStorage.setItem(STORAGE_KEY_POINTS, pts.toString());
+            document.getElementById('user-points-display').textContent = pts;
+        }
+
+        function getStoreOrders() {
+            const data = localStorage.getItem(STORAGE_KEY_ORDERS);
+            return data ? JSON.parse(data) : [
+                { id: 'ORD-101', student: 'Ana Gómez (9°B)', items: '1x Sándwich, 1x Jugo', breakSlot: '1er Descanso (9:30 AM)', total: 7000, status: 'Preparando' }
+            ];
+        }
+
+        function saveStoreOrders(orders) {
+            localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+        }
+
+        // CART STATE
+        let cart = [];
+
+        // CHART JS REFERENCE
+        let wastePieChart = null;
+
+        // APP INITIALIZATION
+        window.onload = function() {
+            // Set default date picker to today
+            document.getElementById('waste-date').value = new Date().toISOString().split('T')[0];
+            
+            // Load state
+            saveUserPoints(getUserPoints());
+            renderWasteLogs();
+            initWasteChart();
+            renderDeposits('ALL');
+            renderContacts();
+            renderStoreMenu();
+            renderStoreOrders();
+            renderDailyChallenges();
+
+            // Setup default active tab
+            switchTab('tab-inicio');
+        };
+
+        // NAVIGATION LOGIC
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if (navBtn) navBtn.classList.add('active');
+
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+
+            // Re-render charts if tab-datos is shown
+            if (tabId === 'tab-datos' && wastePieChart) {
+                wastePieChart.resize();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // ==========================================
+        // LOGIC: DATOS Y REGISTROS
+        // ==========================================
+        function handleWasteSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById('waste-type').value;
+            const amount = parseFloat(document.getElementById('waste-amount').value);
+            const date = document.getElementById('waste-date').value;
+            const location = document.getElementById('waste-location').value;
+
+            const logs = getWasteLogs();
+            const newLog = {
+                id: Date.now(),
+                type,
+                amount,
+                date,
+                location
+            };
+
+            logs.unshift(newLog);
+            saveWasteLogs(logs);
+
+            // Add Eco-Points reward
+            const currentPoints = getUserPoints();
+            saveUserPoints(currentPoints + 15);
+
+            // Trigger celebration
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+
+            // Reset form & update UI
+            document.getElementById('form-waste-log').reset();
+            document.getElementById('waste-date').value = new Date().toISOString().split('T')[0];
+
+            renderWasteLogs();
+            updateChartData();
+        }
+
+        function deleteWasteLog(id) {
+            let logs = getWasteLogs();
+            logs = logs.filter(l => l.id !== id);
+            saveWasteLogs(logs);
+            renderWasteLogs();
+            updateChartData();
+        }
+
+        function renderWasteLogs() {
+            const logs = getWasteLogs();
+            const filter = document.getElementById('filter-type').value;
+            const tbody = document.getElementById('waste-logs-tbody');
+
+            const filtered = filter === 'ALL' ? logs : logs.filter(l => l.type === filter);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-5 py-6 text-center text-slate-400 text-xs">No hay registros coincidentes.</td></tr>`;
+                return;
+            }
+
+            let totalKg = 0;
+            tbody.innerHTML = filtered.map(log => {
+                totalKg += log.amount;
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-5 py-3 font-semibold text-slate-800">${log.type}</td>
+                        <td class="px-5 py-3 font-bold text-brand-700">${log.amount} kg</td>
+                        <td class="px-5 py-3 text-slate-600">${log.location}</td>
+                        <td class="px-5 py-3 text-slate-500 text-xs">${log.date}</td>
+                        <td class="px-5 py-3 text-right">
+                            <button onclick="deleteWasteLog(${log.id})" class="text-slate-400 hover:text-red-600 transition p-1" title="Eliminar">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Update homepage metrics
+            document.getElementById('metric-total-kg').textContent = logs.reduce((acc, curr) => acc + curr.amount, 0).toFixed(1);
+            document.getElementById('metric-total-logs').textContent = logs.length;
+        }
+
+        function initWasteChart() {
+            const ctx = document.getElementById('chart-waste-pie').getContext('2d');
+            const logs = getWasteLogs();
+
+            const categories = ['Plástico', 'Papel/Cartón', 'Vidrio', 'Orgánico', 'Electrónico'];
+            const totals = categories.map(cat => {
+                return logs.filter(l => l.type === cat).reduce((sum, item) => sum + item.amount, 0);
+            });
+
+            if (typeof Chart === 'undefined') return; // Chart.js no cargó: el resto de la app sigue funcionando
+            wastePieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        data: totals,
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        function updateChartData() {
+            if (!wastePieChart) return;
+            const logs = getWasteLogs();
+            const categories = ['Plástico', 'Papel/Cartón', 'Vidrio', 'Orgánico', 'Electrónico'];
+            const totals = categories.map(cat => {
+                return logs.filter(l => l.type === cat).reduce((sum, item) => sum + item.amount, 0);
+            });
+            wastePieChart.data.datasets[0].data = totals;
+            wastePieChart.update();
+        }
+
+        // ==========================================
+        // LOGIC: DEPÓSITOS Y UBICACIONES
+        // ==========================================
+        function filterDeposits(type) {
+            document.querySelectorAll('.deposit-filter-btn').forEach(b => b.classList.remove('bg-white', 'text-brand-900', 'font-bold'));
+            renderDeposits(type);
+        }
+
+        function renderDeposits(filter) {
+            const container = document.getElementById('deposits-grid');
+            const items = filter === 'ALL' 
+                ? depositLocations 
+                : depositLocations.filter(d => d.types.some(t => t.toLowerCase().includes(filter.toLowerCase())));
+
+            container.innerHTML = items.map(dep => `
+                <div class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded ${dep.badgeBg}">Activo</span>
+                            <span class="text-xs text-slate-400 font-medium"><i class="fa-regular fa-clock"></i> ${dep.hours}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-base">${dep.name}</h4>
+                        <p class="text-xs text-slate-500 mt-1"><i class="fa-solid fa-location-dot text-brand-600"></i> ${dep.location}</p>
+                        
+                        <div class="mt-4 pt-3 border-t border-slate-100">
+                            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider block mb-2">Residuos Aceptados:</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${dep.types.map(t => `<span class="bg-slate-100 text-slate-700 text-xs px-2.5 py-1 rounded-lg font-medium">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // LOGIC: CONSEJOS & EDUCACIÓN
+        // ==========================================
+        function generateRandomTip() {
+            const randomIndex = Math.floor(Math.random() * tipsList.length);
+            const tip = tipsList[randomIndex];
+            document.getElementById('random-tip-title').textContent = tip.title;
+            document.getElementById('random-tip-desc').textContent = tip.desc;
+        }
+
+        function showWasteAdvice(itemKey) {
+            const output = document.getElementById('advice-output');
+            const adviceMap = {
+                battery: "⚠️ <strong>Pilas / Baterías:</strong> ¡No las tires a la basura ordinaria! Tienen metales pesados. Llévalas al <em>Punto Especial C en Laboratorios</em> para disposición segura.",
+                juicebox: "🧃 <strong>Tetra Pak:</strong> Escurre completamente el líquido, aplana la caja y deposítala en el contenedor azul de Papel/Cartón.",
+                apple: "🍎 <strong>Restos Orgánicos:</strong> Deposítalos en las canecas verdes de la cafetería. Serán transformados en compost para la huerta del colegio.",
+                paper: "📄 <strong>Hojas de Cuaderno:</strong> Si están secas y sin grafitos excesivos, van directo al Punto A o C para reciclaje de papel."
+            };
+            output.innerHTML = adviceMap[itemKey] || "Selecciona un objeto.";
+        }
+
+        function renderDailyChallenges() {
+            const challenges = [
+                { id: 'c1', text: 'Utiliza un termo de agua reutilizable hoy' },
+                { id: 'c2', text: 'Clasifica el empaque de tu lonchera en el Punto B' },
+                { id: 'c3', text: 'Informa a un compañero sobre el reciclaje de Tetra Pak' }
+            ];
+
+            const container = document.getElementById('daily-challenges-container');
+            container.innerHTML = challenges.map(c => `
+                <label class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-100/80 transition">
+                    <input type="checkbox" onchange="toggleChallenge(this)" class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                    <span class="text-xs font-semibold text-slate-700">${c.text} (+10 Pts)</span>
+                </label>
+            `).join('');
+        }
+
+        function toggleChallenge(checkbox) {
+            if (checkbox.checked) {
+                saveUserPoints(getUserPoints() + 10);
+                confetti({ particleCount: 30, spread: 40, origin: { y: 0.7 } });
+            }
+        }
+
+        // ==========================================
+        // LOGIC: CONTACTOS
+        // ==========================================
+        function renderContacts() {
+            const container = document.getElementById('contacts-grid');
+            container.innerHTML = contactsList.map(c => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <span class="bg-brand-100 text-brand-800 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md">${c.category}</span>
+                    <h4 class="font-bold text-slate-800 text-base">${c.name}</h4>
+                    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot w-4"></i> ${c.loc}</p>
+                    <p class="text-xs text-slate-600"><i class="fa-solid fa-phone w-4"></i> ${c.phone}</p>
+                    <p class="text-xs text-slate-600"><i class="fa-solid fa-envelope w-4"></i> ${c.email}</p>
+                    <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                        <strong>Recibe:</strong> ${c.accepts}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterContacts() {
+            const query = document.getElementById('search-contacts').value.toLowerCase();
+            const filtered = contactsList.filter(c => c.name.toLowerCase().includes(query) || c.category.toLowerCase().includes(query));
+            const container = document.getElementById('contacts-grid');
+
+            container.innerHTML = filtered.map(c => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <span class="bg-brand-100 text-brand-800 text-[10px] font-bold uppercase px-2.5 py-1 rounded-md">${c.category}</span>
+                    <h4 class="font-bold text-slate-800 text-base">${c.name}</h4>
+                    <p class="text-xs text-slate-500"><i class="fa-solid fa-location-dot w-4"></i> ${c.loc}</p>
+                    <p class="text-xs text-slate-600"><i class="fa-solid fa-phone w-4"></i> ${c.phone}</p>
+                    <p class="text-xs text-slate-600"><i class="fa-solid fa-envelope w-4"></i> ${c.email}</p>
+                </div>
+            `).join('');
+        }
+
+        // ==========================================
+        // LOGIC: DONACIONES Y MODAL
+        // ==========================================
+        function openSupportModal(projectName) {
+            document.getElementById('modal-project-title').textContent = `Apoyar: ${projectName}`;
+            const modal = document.getElementById('support-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeSupportModal() {
+            const modal = document.getElementById('support-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleSupportSubmit(e) {
+            e.preventDefault();
+            alert("¡Gracias por tu compromiso con el Colegio Guadalupano! Nos pondremos en contacto contigo pronto.");
+            closeSupportModal();
+        }
+
+        // ==========================================
+        // LOGIC: ECO-DELIVERY STORE
+        // ==========================================
+        function setDeliveryMode(mode) {
+            const studentView = document.getElementById('delivery-student-view');
+            const storeView = document.getElementById('delivery-store-view');
+            const btnStudent = document.getElementById('btn-mode-student');
+            const btnStore = document.getElementById('btn-mode-store');
+
+            if (mode === 'student') {
+                studentView.classList.remove('hidden');
+                storeView.classList.add('hidden');
+                btnStudent.className = "flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-white text-amber-900 shadow";
+                btnStore.className = "flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white hover:bg-white/10";
+            } else {
+                studentView.classList.add('hidden');
+                storeView.classList.remove('hidden');
+                btnStore.className = "flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold bg-white text-amber-900 shadow";
+                btnStudent.className = "flex-1 md:flex-none px-3 sm:px-4 py-2 rounded-xl text-xs font-bold text-white hover:bg-white/10";
+                renderStoreOrders();
+            }
+        }
+
+        function renderStoreMenu() {
+            const container = document.getElementById('store-menu-grid');
+            container.innerHTML = storeMenu.map(item => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl bg-amber-50 w-12 h-12 rounded-xl flex items-center justify-center">${item.icon}</div>
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${item.name}</h4>
+                            <p class="text-xs font-black text-amber-600">$${item.price.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <button onclick="addToCart(${item.id})" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-2 rounded-xl transition">
+                        + Agregar
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(itemId) {
+            const item = storeMenu.find(i => i.id === itemId);
+            if (!item) return;
+
+            const existing = cart.find(i => i.id === itemId);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...item, qty: 1 });
+            }
+
+            updateCartTotals();
+        }
+
+        function removeFromCart(itemId) {
+            cart = cart.filter(i => i.id !== itemId);
+            updateCartTotals();
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartTotals();
+        }
+
+        function updateCartTotals() {
+            const container = document.getElementById('cart-items-container');
+            const badge = document.getElementById('badge-cart-count');
+
+            const totalItems = cart.reduce((acc, curr) => acc + curr.qty, 0);
+            badge.textContent = totalItems;
+            if (totalItems > 0) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+
+            if (cart.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Tu carrito está vacío.</p>`;
+                document.getElementById('cart-subtotal').textContent = "$0";
+                document.getElementById('cart-discount').textContent = "-$0";
+                document.getElementById('cart-total').textContent = "$0";
+                return;
+            }
+
+            container.innerHTML = cart.map(item => `
+                <div class="flex items-center justify-between text-xs py-1">
+                    <div>
+                        <span class="font-bold text-slate-800">${item.name}</span>
+                        <span class="text-slate-400 font-medium">x${item.qty}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-700">$${(item.price * item.qty).toLocaleString()}</span>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-times"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            const subtotal = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+            const usePoints = document.getElementById('use-points-checkbox').checked;
+            
+            let discount = 0;
+            if (usePoints && getUserPoints() >= 50) {
+                discount = 1000;
+            }
+
+            const total = Math.max(0, subtotal - discount);
+
+            document.getElementById('cart-subtotal').textContent = `$${subtotal.toLocaleString()}`;
+            document.getElementById('cart-discount').textContent = `-$${discount.toLocaleString()}`;
+            document.getElementById('cart-total').textContent = `$${total.toLocaleString()}`;
+        }
+
+        function submitOrder() {
+            if (cart.length === 0) {
+                alert("Agrega productos a tu carrito antes de confirmar.");
+                return;
+            }
+
+            const studentName = document.getElementById('order-student-name').value.trim();
+            if (!studentName) {
+                alert("Por favor ingresa tu nombre y grado.");
+                return;
+            }
+
+            const breakSlot = document.getElementById('order-break-slot').value;
+            const usePoints = document.getElementById('use-points-checkbox').checked;
+
+            if (usePoints && getUserPoints() >= 50) {
+                saveUserPoints(getUserPoints() - 50);
+            }
+
+            const itemsSummary = cart.map(i => `${i.qty}x ${i.name}`).join(', ');
+            const subtotal = cart.reduce((acc, curr) => acc + (curr.price * curr.qty), 0);
+            const discount = (usePoints && getUserPoints() >= 50) ? 1000 : 0;
+
+            const orders = getStoreOrders();
+            const newOrder = {
+                id: `ORD-${Math.floor(100 + Math.random() * 900)}`,
+                student: studentName,
+                items: itemsSummary,
+                breakSlot,
+                total: Math.max(0, subtotal - discount),
+                status: 'Pendiente'
+            };
+
+            orders.unshift(newOrder);
+            saveStoreOrders(orders);
+
+            confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+            alert(`¡Pedido ${newOrder.id} enviado a la tienda! Puedes retirarlo en el ${breakSlot}.`);
+
+            cart = [];
+            document.getElementById('order-student-name').value = '';
+            document.getElementById('use-points-checkbox').checked = false;
+            updateCartTotals();
+        }
+
+        function renderStoreOrders() {
+            const orders = getStoreOrders();
+            const container = document.getElementById('store-orders-list');
+
+            if (orders.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No hay pedidos pendientes en la tienda.</div>`;
+                return;
+            }
+
+            container.innerHTML = orders.map(ord => `
+                <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-xs text-slate-900">${ord.id}</span>
+                            <span class="text-xs px-2.5 py-0.5 rounded-full font-bold ${getStatusStyle(ord.status)}">${ord.status}</span>
+                        </div>
+                        <h4 class="font-bold text-sm text-slate-800">${ord.student}</h4>
+                        <p class="text-xs text-slate-600">${ord.items}</p>
+                        <p class="text-[11px] text-amber-700 font-semibold"><i class="fa-regular fa-clock"></i> ${ord.breakSlot} - Total: $${ord.total.toLocaleString()}</p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        ${ord.status === 'Pendiente' ? `<button onclick="updateOrderStatus('${ord.id}', 'Preparando')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition">En Preparación</button>` : ''}
+                        ${ord.status === 'Preparando' ? `<button onclick="updateOrderStatus('${ord.id}', 'Listo')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition">Listo para Entregar</button>` : ''}
+                        ${ord.status === 'Listo' ? `<span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-check-circle"></i> Entregado</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusStyle(status) {
+            switch(status) {
+                case 'Pendiente': return 'bg-amber-100 text-amber-800';
+                case 'Preparando': return 'bg-blue-100 text-blue-800';
+                case 'Listo': return 'bg-emerald-100 text-emerald-800';
+                default: return 'bg-slate-100 text-slate-800';
+            }
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            let orders = getStoreOrders();
+            const target = orders.find(o => o.id === orderId);
+            if (target) {
+                target.status = newStatus;
+                saveStoreOrders(orders);
+                renderStoreOrders();
+            }
+        }
+    </script>
+</body>
+</html>
